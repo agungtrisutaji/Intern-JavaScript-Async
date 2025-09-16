@@ -3,9 +3,50 @@
 <head>
   <meta charset="UTF-8">
   <title>Promise</title>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+    th {
+      background-color: #27ae60; /* hijau untuk header */
+      color: white;
+      font-weight: bold;
+    }
+    img {
+      max-width: 80px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <input type="text" id="keyword" placeholder="Keyword 1">
+  <input type="text" id="keyword2" placeholder="Keyword 2">
+  <input type="text" id="keyword3" placeholder="Keyword 3">
+  <button onclick="buttonClick()">Search Products</button>
+
+  <!-- Tabel hasil pencarian -->
+  <table id="products">
+    <thead>
+      <tr>
+        <th>Judul</th>
+        <th>Tipe</th>
+        <th>Tahun</th>
+        <th>Poster</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
   <script>
     function getProductsUrl(keyword) {
-      return `https://www.omdbapi.com/?apikey=dca61bcc&s=${keyword}`;
+      return `https://www.omdbapi.com/?apikey=dca61bcc&s=${encodeURIComponent(keyword)}`;
     }
 
     function getProducts(keyword) {
@@ -26,25 +67,59 @@
     }
 
     function clearProducts() {
-      document.getElementById("products").textContent = "";
+      document.querySelector("#products tbody").innerHTML = "";
     }
 
     function displayProducts(data) {
-      if (data.Search) {
-        data.Search.forEach(product => displayProduct(product));
+      const tbody = document.querySelector("#products tbody");
+
+      if (data.Search && Array.isArray(data.Search)) {
+        data.Search.forEach(function (product) {
+          const row = document.createElement("tr");
+
+          // Judul
+          const tdTitle = document.createElement("td");
+          tdTitle.textContent = product.Title;
+          row.appendChild(tdTitle);
+
+          // Tipe
+          const tdType = document.createElement("td");
+          tdType.textContent = product.Type;
+          row.appendChild(tdType);
+
+          // Tahun
+          const tdYear = document.createElement("td");
+          tdYear.textContent = product.Year;
+          row.appendChild(tdYear);
+
+          // Poster
+          const tdPoster = document.createElement("td");
+          if (product.Poster && product.Poster !== "N/A") {
+            const img = document.createElement("img");
+            img.src = product.Poster;
+            img.alt = product.Title;
+            tdPoster.appendChild(img);
+          } else {
+            tdPoster.textContent = "N/A";
+          }
+          row.appendChild(tdPoster);
+
+          tbody.appendChild(row);
+        });
+      } else {
+        const row = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 4;
+        td.textContent = "Tidak ada hasil.";
+        row.appendChild(td);
+        tbody.appendChild(row);
       }
     }
 
-    function displayProduct(product) {
-      const li = document.createElement("li");
-      li.textContent = product.Title; // OMDb pakai Title
-      document.getElementById("products").appendChild(li);
-    }
-
     function buttonClick() {
-      const k1 = document.getElementById("keyword").value;
-      const k2 = document.getElementById("keyword2").value;
-      const k3 = document.getElementById("keyword3").value;
+      const k1 = document.getElementById("keyword").value.trim();
+      const k2 = document.getElementById("keyword2").value.trim();
+      const k3 = document.getElementById("keyword3").value.trim();
 
       const p1 = getProducts(k1);
       const p2 = getProducts(k2);
@@ -65,12 +140,5 @@
         });
     }
   </script>
-</head>
-<body>
-  <input type="text" id="keyword" placeholder="Keyword 1">
-  <input type="text" id="keyword2" placeholder="Keyword 2">
-  <input type="text" id="keyword3" placeholder="Keyword 3">
-  <button onclick="buttonClick()">Search Products</button>
-  <ul id="products"></ul>
 </body>
 </html>
