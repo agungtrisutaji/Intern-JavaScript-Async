@@ -3,103 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <title>AJAX</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+
+        th {
+            background-color: #27ae60;   /* Hijau hanya untuk header */
+            color: white;
+            font-weight: bold;
+        }
+
+        img {
+            max-width: 80px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Cari Film</h2>
+    <input type="text" id="keyword" placeholder="Masukkan judul film">
+    <button onclick="buttonClick()">Search Products</button>
+
+    <div id="table-products"></div>
+
     <script>
         function getProductsUrl(keyword) {
-            return `https://www.omdbapi.com/?apikey=dca61bcc&s=${keyword}`;
+            return `https://www.omdbapi.com/?apikey=dca61bcc&s=${encodeURIComponent(keyword)}`;
         }
 
         function getProducts(keyword, callbackSuccess, callbackError) {
-            // Code AJAX Here!
             const ajax = new XMLHttpRequest();
             ajax.onload = function () {
                 if (ajax.status === 200) {
                     const data = JSON.parse(ajax.responseText);
-                    callbackSuccess(data);
+                    if (data.Response === "True") {
+                        callbackSuccess(data);
+                    } else {
+                        callbackError();
+                    }
                 } else {
                     callbackError();
                 }
             };
-
-            const url = getProductsUrl(keyword);
-            ajax.open("GET", url);
+            ajax.open("GET", getProductsUrl(keyword));
             ajax.send();
-
-            // tidak bisa dilakukan secara sync
-            // const response = JSON.parse(ajax.responseText);
-            // console.log(response);
         }
 
         function getProductsError() {
-            console.log("Error get products");
-            alert("Error get products");
+            alert("Error mengambil data film");
         }
-
-        function clearProducts() {
-            const productUl = document.getElementById("products");
-            productUl.textContent = "";
-        }
-
-        function displayProducts(data) {
-            data.Search.forEach(product => displayProduct(product));
-        }
-
-        function displayProduct(product) {
-            const productLi = document.createElement("li");
-            productLi.textContent = product.Title;
-
-            const productUl = document.getElementById("products");
-            productUl.appendChild(productLi);
-        }
-
 
         function clearTableProducts() {
-            const productUl = document.getElementById("table-products");
-            productUl.textContent = "";
+            document.getElementById("table-products").textContent = "";
         }
 
+        // === TABEL Judul | Tipe | Tahun | Poster ===
         function displayTableProducts(data) {
             const table = document.createElement("table");
-            table.setAttribute("border", 1);
 
-            let index = 0;
-            data.data.Search.forEach(product => {
-                table.insertRow(index).insertCell(0).innerText = product.Title;
-                index++;
+            // Header
+            const header = table.insertRow();
+            ["Judul", "Tipe", "Tahun", "Poster"].forEach(text => {
+                const th = document.createElement("th");
+                th.textContent = text;
+                header.appendChild(th);
             });
 
-            const tableProduct = document.getElementById("table-products");
-            tableProduct.appendChild(table);
+            // Isi tabel
+            data.Search.forEach(movie => {
+                const row = table.insertRow();
+
+                row.insertCell().textContent = movie.Title;
+                row.insertCell().textContent = movie.Type;
+                row.insertCell().textContent = movie.Year;
+
+                const cellPoster = row.insertCell();
+                if (movie.Poster && movie.Poster !== "N/A") {
+                    const img = document.createElement("img");
+                    img.src = movie.Poster;
+                    img.alt = movie.Title;
+                    cellPoster.appendChild(img);
+                } else {
+                    cellPoster.textContent = "N/A";
+                }
+            });
+
+            document.getElementById("table-products").appendChild(table);
         }
 
         function buttonClick() {
-            getProducts(document.getElementById("keyword").value, function (data) {
-                console.log(data);
-            }, function () {
-                console.log("Error");
-            });
+            const keyword = document.getElementById("keyword").value.trim();
+            if (!keyword) {
+                alert("Masukkan judul film");
+                return;
+            }
 
-            getProducts(document.getElementById("keyword").value, function (data) {
-                clearProducts();
-                displayProducts(data)
-            }, function () {
-                getProductsError();
-            });
-
-            getProducts(document.getElementById("keyword").value, function (data) {
+            getProducts(keyword, function (data) {
                 clearTableProducts();
-                displayTableProducts(data)
-            }, function () {
-                getProductsError();
-            });
-
-            console.log("Success Click Button");
+                displayTableProducts(data);
+            }, getProductsError);
         }
     </script>
-</head>
-<body>
-<input type="text" id="keyword">
-<button onclick="buttonClick()">Search Products</button>
-<ul id="products"></ul>
-<div id="table-products"></div>
 </body>
 </html>
