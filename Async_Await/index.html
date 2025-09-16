@@ -3,6 +3,48 @@
 <head>
   <meta charset="UTF-8">
   <title>Async Await</title>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+
+    th {
+      background-color: #27ae60;  /* Hijau untuk header */
+      color: white;
+      font-weight: bold;
+    }
+
+    img {
+      max-width: 80px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <input type="text" id="keyword" placeholder="Masukkan judul film">
+  <button onclick="buttonClick()">Search Products</button>
+
+  <!-- Tabel hasil pencarian -->
+  <table id="products">
+    <thead>
+      <tr>
+        <th>Judul</th>
+        <th>Tipe</th>
+        <th>Tahun</th>
+        <th>Poster</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
   <script>
     function getProductsUrl(keyword) {
       return `https://www.omdbapi.com/?apikey=dca61bcc&s=${encodeURIComponent(keyword)}`;
@@ -26,28 +68,58 @@
     }
 
     function clearProducts() {
-      document.getElementById("products").textContent = "";
+      document.querySelector("#products tbody").innerHTML = "";
     }
 
     function displayProducts(data) {
-      if (data.Search && Array.isArray(data.Search)) {
-        data.Search.forEach(displayProduct);
-      } else {
-        const li = document.createElement("li");
-        li.textContent = "Tidak ada hasil.";
-        document.getElementById("products").appendChild(li);
-      }
-    }
+      const tbody = document.querySelector("#products tbody");
 
-    function displayProduct(product) {
-      const li = document.createElement("li");
-      li.textContent = product.Title; // gunakan Title, bukan name
-      document.getElementById("products").appendChild(li);
+      if (data.Search && Array.isArray(data.Search)) {
+        data.Search.forEach(product => {
+          const row = document.createElement("tr");
+
+          // Judul
+          const tdTitle = document.createElement("td");
+          tdTitle.textContent = product.Title;
+          row.appendChild(tdTitle);
+
+          // Tipe
+          const tdType = document.createElement("td");
+          tdType.textContent = product.Type;
+          row.appendChild(tdType);
+
+          // Tahun
+          const tdYear = document.createElement("td");
+          tdYear.textContent = product.Year;
+          row.appendChild(tdYear);
+
+          // Poster
+          const tdPoster = document.createElement("td");
+          if (product.Poster && product.Poster !== "N/A") {
+            const img = document.createElement("img");
+            img.src = product.Poster;
+            img.alt = product.Title;
+            tdPoster.appendChild(img);
+          } else {
+            tdPoster.textContent = "N/A";
+          }
+          row.appendChild(tdPoster);
+
+          tbody.appendChild(row);
+        });
+      } else {
+        const row = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 4;
+        td.textContent = "Tidak ada hasil.";
+        row.appendChild(td);
+        tbody.appendChild(row);
+      }
     }
 
     async function buttonClick() {
       try {
-        const value = await getProducts(document.getElementById("keyword").value);
+        const value = await getProducts(document.getElementById("keyword").value.trim());
         clearProducts();
         displayProducts(value);
       } catch (error) {
@@ -57,10 +129,5 @@
       }
     }
   </script>
-</head>
-<body>
-  <input type="text" id="keyword" placeholder="Masukkan judul film">
-  <button onclick="buttonClick()">Search Products</button>
-  <ul id="products"></ul>
 </body>
 </html>
