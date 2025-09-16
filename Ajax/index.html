@@ -5,7 +5,7 @@
     <title>AJAX</title>
     <script>
         function getProductsUrl(keyword) {
-            return `https://api.escuelajs.co/api/v1/products=${keyword}`;
+            return `https://www.omdbapi.com/?apikey=dca61bcc&s=${keyword}`;
         }
 
         function getProducts(keyword, callbackSuccess, callbackError) {
@@ -40,12 +40,12 @@
         }
 
         function displayProducts(data) {
-            data.data.products.forEach(product => displayProduct(product));
+            data.Search.forEach(product => displayProduct(product));
         }
 
         function displayProduct(product) {
             const productLi = document.createElement("li");
-            productLi.textContent = product.name;
+            productLi.textContent = product.Title;
 
             const productUl = document.getElementById("products");
             productUl.appendChild(productLi);
@@ -62,8 +62,8 @@
             table.setAttribute("border", 1);
 
             let index = 0;
-            data.data.products.forEach(product => {
-                table.insertRow(index).insertCell(0).innerText = product.name;
+            data.data.Search.forEach(product => {
+                table.insertRow(index).insertCell(0).innerText = product.Title;
                 index++;
             });
 
