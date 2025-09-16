@@ -3,59 +3,140 @@
 <head>
   <meta charset="UTF-8">
   <title>Fetch API</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f7f7f7;
+    }
+    input[type="text"] {
+      padding: 8px 12px;
+      width: 250px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      padding: 8px 14px;
+      background: #27ae60;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #219150;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: #fff;
+    }
+    th, td {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+    th {
+      background-color: #27ae60;
+      color: white;
+      font-weight: bold;
+    }
+    img {
+      max-width: 80px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Pencarian Film</h2>
+  <input type="text" id="keyword" placeholder="Masukkan judul film">
+  <button onclick="buttonClick()">Cari</button>
+
+  <table id="products">
+    <thead>
+      <tr>
+        <th>Judul</th>
+        <th>Tipe</th>
+        <th>Tahun</th>
+        <th>Poster</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
   <script>
     function getProductsUrl(keyword) {
       return `https://www.omdbapi.com/?apikey=dca61bcc&s=${encodeURIComponent(keyword)}`;
     }
 
     function getProducts(keyword) {
-      const url = getProductsUrl(keyword);
-      return fetch(url)
-        .then(function (response) {
+      return fetch(getProductsUrl(keyword))
+        .then(response => {
           if (!response.ok) throw new Error("Gagal mengambil data");
           return response.json();
         });
     }
 
     function clearProducts() {
-      document.getElementById("products").textContent = "";
+      document.querySelector("#products tbody").innerHTML = "";
     }
 
     function displayProducts(data) {
+      const tbody = document.querySelector("#products tbody");
+
       if (data.Search && Array.isArray(data.Search)) {
-        data.Search.forEach(displayProduct);
+        data.Search.forEach(product => {
+          const row = document.createElement("tr");
+
+          const tdTitle = document.createElement("td");
+          tdTitle.textContent = product.Title;
+          row.appendChild(tdTitle);
+
+          const tdType = document.createElement("td");
+          tdType.textContent = product.Type;
+          row.appendChild(tdType);
+
+          const tdYear = document.createElement("td");
+          tdYear.textContent = product.Year;
+          row.appendChild(tdYear);
+
+          const tdPoster = document.createElement("td");
+          if (product.Poster && product.Poster !== "N/A") {
+            const img = document.createElement("img");
+            img.src = product.Poster;
+            img.alt = product.Title;
+            tdPoster.appendChild(img);
+          } else {
+            tdPoster.textContent = "N/A";
+          }
+          row.appendChild(tdPoster);
+
+          tbody.appendChild(row);
+        });
       } else {
-        const li = document.createElement("li");
-        li.textContent = "Tidak ada hasil.";
-        document.getElementById("products").appendChild(li);
+        const row = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 4;
+        td.textContent = "Tidak ada hasil.";
+        row.appendChild(td);
+        tbody.appendChild(row);
       }
     }
 
-    function displayProduct(product) {
-      const li = document.createElement("li");
-      li.textContent = product.Title; // gunakan Title, bukan name
-      document.getElementById("products").appendChild(li);
-    }
-
     function buttonClick() {
-      const keyword = document.getElementById("keyword").value;
+      const keyword = document.getElementById("keyword").value.trim();
+      if (!keyword) {
+        alert("Masukkan judul film");
+        return;
+      }
+
+      clearProducts();
       getProducts(keyword)
-        .then(function (value) {
-          clearProducts();
-          displayProducts(value);
-        })
-        .catch(function (error) {
-          alert(error.message);
-        })
-        .finally(function () {
-          console.log("Selesai memproses Fetch");
-        });
+        .then(data => displayProducts(data))
+        .catch(error => alert(error.message))
+        .finally(() => console.log("Selesai memproses Fetch"));
     }
   </script>
-</head>
-<body>
-  <input type="text" id="keyword" placeholder="Masukkan judul film">
-  <button onclick="buttonClick()">Search Products</button>
-  <ul id="products"></ul>
 </body>
 </html>
