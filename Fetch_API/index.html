@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fetch API</title>
+  <script>
+    function getProductsUrl(keyword) {
+      return `https://www.omdbapi.com/?apikey=dca61bcc&s=${encodeURIComponent(keyword)}`;
+    }
+
+    function getProducts(keyword) {
+      const url = getProductsUrl(keyword);
+      return fetch(url)
+        .then(function (response) {
+          if (!response.ok) throw new Error("Gagal mengambil data");
+          return response.json();
+        });
+    }
+
+    function clearProducts() {
+      document.getElementById("products").textContent = "";
+    }
+
+    function displayProducts(data) {
+      if (data.Search && Array.isArray(data.Search)) {
+        data.Search.forEach(displayProduct);
+      } else {
+        const li = document.createElement("li");
+        li.textContent = "Tidak ada hasil.";
+        document.getElementById("products").appendChild(li);
+      }
+    }
+
+    function displayProduct(product) {
+      const li = document.createElement("li");
+      li.textContent = product.Title; // gunakan Title, bukan name
+      document.getElementById("products").appendChild(li);
+    }
+
+    function buttonClick() {
+      const keyword = document.getElementById("keyword").value;
+      getProducts(keyword)
+        .then(function (value) {
+          clearProducts();
+          displayProducts(value);
+        })
+        .catch(function (error) {
+          alert(error.message);
+        })
+        .finally(function () {
+          console.log("Selesai memproses Fetch");
+        });
+    }
+  </script>
+</head>
+<body>
+  <input type="text" id="keyword" placeholder="Masukkan judul film">
+  <button onclick="buttonClick()">Search Products</button>
+  <ul id="products"></ul>
+</body>
+</html>
