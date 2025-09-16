@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WEB WORKER</title>
+  <script>
+    let worker;
+
+    window.onload = function () {
+      // Pastikan browser mendukung Web Worker
+      if (window.Worker) {
+        worker = new Worker("web-worker.js");
+
+        // Menerima pesan dari worker
+        worker.addEventListener("message", function (event) {
+          console.log(`Receive message from web worker: ${event.data}`);
+        });
+      } else {
+        console.log("Web Worker tidak didukung browser ini");
+      }
+    };
+
+    function buttonClick() {
+      console.log("Start Log");
+      if (worker) {
+        worker.postMessage(20000); // kirim data ke worker
+      }
+      console.log("Finish Log");
+    }
+  </script>
+</head>
+<body>
+  <button onclick="buttonClick()">Search Products</button>
+</body>
+</html>
