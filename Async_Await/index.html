@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Async Await</title>
+  <script>
+    function getProductsUrl(keyword) {
+      return `https://www.omdbapi.com/?apikey=dca61bcc&s=${encodeURIComponent(keyword)}`;
+    }
+
+    function getProducts(keyword) {
+      return new Promise(function (resolve, reject) {
+        const ajax = new XMLHttpRequest();
+        ajax.onload = function () {
+          if (ajax.status === 200) {
+            const data = JSON.parse(ajax.responseText);
+            resolve(data);
+          } else {
+            reject(Error("Error mengambil data produk"));
+          }
+        };
+        ajax.onerror = () => reject(Error("Terjadi kesalahan jaringan"));
+        ajax.open("GET", getProductsUrl(keyword));
+        ajax.send();
+      });
+    }
+
+    function clearProducts() {
+      document.getElementById("products").textContent = "";
+    }
+
+    function displayProducts(data) {
+      if (data.Search && Array.isArray(data.Search)) {
+        data.Search.forEach(displayProduct);
+      } else {
+        const li = document.createElement("li");
+        li.textContent = "Tidak ada hasil.";
+        document.getElementById("products").appendChild(li);
+      }
+    }
+
+    function displayProduct(product) {
+      const li = document.createElement("li");
+      li.textContent = product.Title; // gunakan Title, bukan name
+      document.getElementById("products").appendChild(li);
+    }
+
+    async function buttonClick() {
+      try {
+        const value = await getProducts(document.getElementById("keyword").value);
+        clearProducts();
+        displayProducts(value);
+      } catch (error) {
+        alert(error.message);
+      } finally {
+        console.log("Selesai memproses Async Await");
+      }
+    }
+  </script>
+</head>
+<body>
+  <input type="text" id="keyword" placeholder="Masukkan judul film">
+  <button onclick="buttonClick()">Search Products</button>
+  <ul id="products"></ul>
+</body>
+</html>
